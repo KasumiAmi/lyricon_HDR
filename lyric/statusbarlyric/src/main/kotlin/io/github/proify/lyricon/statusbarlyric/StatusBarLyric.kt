@@ -32,6 +32,7 @@ import io.github.proify.lyricon.lyric.view.LyricPlayerView
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
+import io.github.proify.lyricon.statusbarlyric.logo.SuperLogo
 
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(

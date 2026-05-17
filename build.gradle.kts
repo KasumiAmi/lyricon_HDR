@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     id("com.vanniktech.maven.publish") version "0.36.0" apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
-    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.1" apply false
+    id("com.mikepenz.aboutlibraries.plugin.android") version "14.2.0" apply false
 }
 
 extra["appPackageName"] = "io.github.proify.lyricon"

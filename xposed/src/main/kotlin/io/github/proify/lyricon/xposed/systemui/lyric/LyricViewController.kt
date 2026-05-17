@@ -11,7 +11,7 @@ import io.github.proify.android.extensions.crc32
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
-import io.github.proify.lyricon.statusbarlyric.SuperLogo
+import io.github.proify.lyricon.statusbarlyric.logo.CoverStrategy
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
 import io.github.proify.lyricon.xposed.logger.YLog
@@ -285,7 +285,7 @@ object LyricViewController : ActivePlayerListener,
         updateAllControllers {
             lyricView.logoView.apply {
                 this.coverFile = coverFile
-                (strategy as? SuperLogo.CoverStrategy)?.updateContent()
+                (strategy as? CoverStrategy)?.updateContent()
             }
             updateCoverThemeColors(coverFile)
         }

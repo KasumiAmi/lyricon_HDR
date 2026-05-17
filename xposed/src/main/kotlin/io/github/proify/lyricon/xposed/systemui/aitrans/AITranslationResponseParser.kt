@@ -20,7 +20,19 @@ internal object AITranslationResponseParser {
     }
 
     private fun decodeTranslationItems(content: String): List<TranslationItem> {
-        return json.decodeFromString<TranslationResponse>(content).translated
+        return try {
+            return json.decodeFromString<TranslationResponse>(content).translated
+        } catch (_: Exception) {
+            json.decodeFromString<TranslationResponse>(cleanOpenAIResponse(content)).translated
+        }
+    }
+
+    private fun cleanOpenAIResponse(rawResponse: String): String {
+        return rawResponse
+            .replace(Regex("^```json\\s*\\n?"), "")  // 移除开头的 ```json
+            .replace(Regex("^```\\s*\\n?"), "")       // 移除开头的 ```
+            .replace(Regex("\\n?```\\s*$"), "")       // 移除结尾的 ```
+            .trim()
     }
 
     private fun normalizeTranslationItems(

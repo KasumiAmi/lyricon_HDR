@@ -33,7 +33,7 @@ open class LyricPlayerView(
     companion object {
         internal const val KEY_SONG_TITLE_LINE: String = "TitleLine"
         private const val MIN_GAP_DURATION: Long = 8 * 1000
-        private const val TAG = "LyricPlayerView"
+        //private const val TAG = "LyricPlayerView"
     }
 
     private var isTextMode = false
