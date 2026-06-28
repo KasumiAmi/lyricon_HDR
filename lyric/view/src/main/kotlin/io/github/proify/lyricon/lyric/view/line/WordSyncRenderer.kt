@@ -9,8 +9,10 @@
 package io.github.proify.lyricon.lyric.view.line
 
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.os.Build
 import android.text.TextPaint
 import io.github.proify.lyricon.lyric.view.LyricPlayListener
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
@@ -61,6 +63,16 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
             }
         }
 
+    var hdrHighlightRatio: Float = MIN_HDR_HIGHLIGHT_RATIO
+        set(value) {
+            val ratio = value.normalizedHdrHighlightRatio()
+            if (field == ratio) return
+            field = ratio
+            textDrawer.hdrHighlightRatio = ratio
+            applyHighlightColor()
+            textDrawer.clearShaderCache()
+        }
+
     var playListener: LyricPlayListener? = null
         set(value) {
             field = value
@@ -76,6 +88,8 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     override val isFinished get() = progressAnimator.hasFinished
     override val isStarted get() = progressAnimator.hasStarted
 
+    private var highlightColor: Int = Color.WHITE
+
     fun setTextSize(size: Float) {
         bgPaint.textSize = size
         hlPaint.textSize = size
@@ -90,7 +104,10 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
 
     fun setColors(background: IntArray, highlight: IntArray) {
         if (background.isNotEmpty()) bgPaint.color = background[0]
-        if (highlight.isNotEmpty()) hlPaint.color = highlight[0]
+        if (highlight.isNotEmpty()) {
+            highlightColor = highlight[0]
+            applyHighlightColor()
+        }
         textDrawer.setColors(background, highlight)
         textDrawer.clearShaderCache()
     }
@@ -215,7 +232,32 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
         _playListener.onPlayProgress(view, total, current)
     }
 
+    private fun applyHighlightColor() {
+        if (hdrHighlightRatio <= MIN_HDR_HIGHLIGHT_RATIO ||
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+        ) {
+            hlPaint.color = highlightColor
+            return
+        }
+
+        runCatching {
+            hlPaint.setColor(HdrColor.packHighlightColor(highlightColor, hdrHighlightRatio))
+        }.onFailure {
+            hlPaint.color = highlightColor
+        }
+    }
+
+    private fun Float.normalizedHdrHighlightRatio(): Float =
+        if (isFinite() && this > MIN_HDR_HIGHLIGHT_RATIO) {
+            coerceAtMost(MAX_HDR_HIGHLIGHT_RATIO)
+        } else {
+            MIN_HDR_HIGHLIGHT_RATIO
+        }
+
     companion object {
+        private const val MIN_HDR_HIGHLIGHT_RATIO = 1.0f
+        private const val MAX_HDR_HIGHLIGHT_RATIO = 8.0f
+
         private val NoOpPlayListener = object : LyricPlayListener {
             override fun onPlayStarted(view: LyricLineView) {}
             override fun onPlayEnded(view: LyricLineView) {}

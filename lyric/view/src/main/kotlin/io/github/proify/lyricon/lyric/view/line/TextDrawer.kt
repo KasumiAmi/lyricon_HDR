@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.lyric.view.line
 
+import android.annotation.SuppressLint
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ComposeShader
@@ -13,6 +14,7 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.Shader
+import android.os.Build
 import android.text.TextPaint
 import androidx.core.graphics.withSave
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
@@ -32,14 +34,19 @@ internal class TextDrawer {
     val isRainbowBg get() = bgColors.size > 1
     val isRainbowHl get() = hlColors.size > 1
 
+    var hdrHighlightRatio: Float = 1.0f
+
     private val fontMetrics = Paint.FontMetrics()
     private var baselineOffset = 0f
 
     private var cachedRainbowShader: LinearGradient? = null
+    private var cachedHdrRainbowShader: LinearGradient? = null
     private var cachedAlphaMaskShader: LinearGradient? = null
     private var lastTotalWidth = -1f
     private var lastHighlightWidth = -1f
     private var lastColorsHash = 0
+    private var lastHdrColorsHash = 0
+    private var lastHdrRatio = 1.0f
 
     fun setColors(background: IntArray, highlight: IntArray) {
         if (background.isNotEmpty()) bgColors = background
@@ -53,6 +60,7 @@ internal class TextDrawer {
 
     fun clearShaderCache() {
         cachedRainbowShader = null
+        cachedHdrRainbowShader = null
         cachedAlphaMaskShader = null
         lastTotalWidth = -1f
     }
@@ -119,9 +127,10 @@ internal class TextDrawer {
 
                     //val atEnd = highlightWidth >= model.width
                     val atEnd = false
-                    if (useGradient && !atEnd) {
+                    val useHdrSingleColor = hdrHighlightRatio > 1.0f && !isRainbowHl
+                    if (useGradient && !atEnd && !useHdrSingleColor) {
                         val baseShader = if (isRainbowHl) {
-                            getOrCreateRainbowShader(model.width, hlColors)
+                            getOrCreateHighlightShader(model.width)
                         } else {
                             LinearGradient(
                                 0f, 0f, model.width, 0f,
@@ -133,7 +142,7 @@ internal class TextDrawer {
                         hlPaint.shader = ComposeShader(baseShader, maskShader, PorterDuff.Mode.DST_IN)
                     } else {
                         if (isRainbowHl) {
-                            hlPaint.shader = getOrCreateRainbowShader(model.width, hlColors)
+                            hlPaint.shader = getOrCreateHighlightShader(model.width)
                         } else {
                             hlPaint.shader = null
                         }
@@ -301,6 +310,48 @@ internal class TextDrawer {
             lastColorsHash = colorsHash
         }
         return cachedRainbowShader!!
+    }
+
+    private fun getOrCreateHighlightShader(totalWidth: Float): Shader {
+        return if (hdrHighlightRatio > 1.0f) {
+            getOrCreateHdrRainbowShader(totalWidth, hlColors, hdrHighlightRatio)
+                ?: getOrCreateRainbowShader(totalWidth, hlColors)
+        } else {
+            getOrCreateRainbowShader(totalWidth, hlColors)
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private fun getOrCreateHdrRainbowShader(
+        totalWidth: Float,
+        colors: IntArray,
+        ratio: Float
+    ): Shader? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+
+        val colorsHash = colors.contentHashCode()
+        if (cachedHdrRainbowShader == null ||
+            lastTotalWidth != totalWidth ||
+            lastHdrColorsHash != colorsHash ||
+            lastHdrRatio != ratio
+        ) {
+            cachedHdrRainbowShader = runCatching {
+                LinearGradient(
+                    0f, 0f, totalWidth, 0f,
+                    colors.mapToLongArray { HdrColor.packHighlightColor(it, ratio) },
+                    null,
+                    Shader.TileMode.CLAMP
+                )
+            }.getOrNull()
+            lastTotalWidth = totalWidth
+            lastHdrColorsHash = colorsHash
+            lastHdrRatio = ratio
+        }
+        return cachedHdrRainbowShader
+    }
+
+    private inline fun IntArray.mapToLongArray(transform: (Int) -> Long): LongArray {
+        return LongArray(size) { index -> transform(this[index]) }
     }
 
     private fun getOrCreateAlphaMaskShader(totalWidth: Float, highlightWidth: Float): Shader {

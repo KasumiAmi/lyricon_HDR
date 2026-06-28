@@ -86,6 +86,16 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             invalidate()
         }
 
+    var hdrHighlightRatio: Float
+        get() = syncRenderer.hdrHighlightRatio
+        set(value) {
+            val old = syncRenderer.hdrHighlightRatio
+            syncRenderer.hdrHighlightRatio = value
+            if (syncRenderer.hdrHighlightRatio != old) {
+                invalidate()
+            }
+        }
+
     private val lineState = LineState()
     private val scrollRenderer = ScrollTextRenderer()
     private val syncRenderer = WordSyncRenderer(this)

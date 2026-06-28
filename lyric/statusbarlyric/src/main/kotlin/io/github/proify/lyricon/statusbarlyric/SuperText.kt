@@ -15,6 +15,7 @@ import androidx.core.view.isEmpty
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
+import io.github.proify.android.extensions.setColorAlpha
 import io.github.proify.android.extensions.sp
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.style.TextStyle
@@ -182,19 +183,27 @@ class SuperText(context: Context) : LyricPlayerView(context) {
 
     private fun resolveBgColor(textStyle: TextStyle): IntArray {
         val customColor = textStyle.color(currentStatusColor.isLightMode)
-        return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
-            customColor.background
-        } else {
-            currentStatusColor.translucentColor
+        return when {
+            textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true ->
+                customColor.background
+
+            textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true ->
+                customColor.normal.map { it.setColorAlpha(0.75f) }.toIntArray()
+
+            else -> currentStatusColor.translucentColor
         }
     }
 
     private fun resolveHighlightColor(textStyle: TextStyle): IntArray {
         val customColor = textStyle.color(currentStatusColor.isLightMode)
-        return if (textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true) {
-            customColor.highlight
-        } else {
-            currentStatusColor.color
+        return when {
+            textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true ->
+                customColor.highlight
+
+            textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true ->
+                customColor.normal
+
+            else -> currentStatusColor.color
         }
     }
 
