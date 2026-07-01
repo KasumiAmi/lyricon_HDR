@@ -11,7 +11,7 @@
 </p>
 
 ## 另供修复版的网易云歌词获取模块，现可正常显示外语歌的翻译歌词
-**现测试无需点开歌词页才能获取翻译歌词** [获取](https://github.com/KasumiAmi/LyricProvider/releases/download/163music-1.0.5-fix/163-music-1.0.5-beta1-release.apk)
+**现测试无需点开歌词页就能获取翻译歌词** [获取](https://github.com/KasumiAmi/LyricProvider/releases/download/163music-1.0.5-fix/163-music-1.0.5-beta1-release.apk)
 
 ## 仍沿用词幕的原包名但签名不同，若要覆盖安装，请提前确认核心破解的相关配置状态。/n 若要安装使用请注意备份配置数据
 **再次提醒：此版本属实验性分支，不建议安装在存有重要资料的机子上使用**
